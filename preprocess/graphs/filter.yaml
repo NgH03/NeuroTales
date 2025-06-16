@@ -1,0 +1,43 @@
+graphs:
+  - id: filter
+    nodes:
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ raw ]
+      - id: notch
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandstop
+          frequencies: [ 45, 55 ]
+          order: 1
+          rate: 256
+      - id: bandpass
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandpass
+          frequencies: [ 0.1, 30 ]
+          order: 3
+          rate: 256
+      - id: pub_filtered
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: filtered
+      - id: band_powers
+        module: preprocess.nodes.power
+        class: Power
+        params:
+          length: 4
+          step: 1
+    edges:
+      - source: sub:raw
+        target: notch
+      - source: notch
+        target: bandpass
+      - source: bandpass
+        target: pub_filtered
+    rate: 10

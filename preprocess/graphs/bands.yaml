@@ -1,0 +1,31 @@
+graphs:
+  - id: bands
+    nodes:
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ filtered ]
+      - id: filter_bank
+        module: timeflux_dsp.nodes.filters
+        class: FilterBank
+        params:
+          filters:
+            'delta': { frequencies: [ 1, 4 ], order: 3 }
+            'theta': { frequencies: [ 5, 7 ], order: 3 }
+            'alpha': { frequencies: [ 8, 12 ], order: 3 }
+            'beta': { frequencies: [ 13, 20 ], order: 3 }
+            'gamma': { frequencies: [ 25, 40 ], order: 3 }
+          design: butter
+          rate: 256
+      - id: pub_bands
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: bands
+    edges:
+      - source: sub:filtered
+        target: filter_bank
+      - source: filter_bank
+        target: pub_bands
+    rate: 10

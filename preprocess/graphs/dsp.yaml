@@ -1,0 +1,69 @@
+import:
+  - replay.yaml
+
+graphs:
+  - id: broker
+    nodes:
+      - id: broker
+        module: timeflux.nodes.zmq
+        class: Broker
+  - id: main
+    nodes:
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [raw]
+#          encoding: utf-8
+      - id: bandpass
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          rate: 250
+          frequencies: [4, 30]
+          filter_type: butterworth
+          order: 4
+          output: signal_filtered
+      - id: window
+        module: timeflux_dsp.nodes.time
+        class: Window
+        params:
+          fs: 250
+          length: 5
+          step: 5
+      - id: spectrum
+        module: timeflux_dsp.nodes.spectral
+        class: Welch
+        params:
+          fs: 250
+          nperseg: 256
+          noverlap: 128
+          nfft: 512
+          scaling: density
+      - id: bands
+        module: timeflux_dsp.nodes.spectral
+        class: BandPower
+        params:
+          fs: 250
+          bands:
+            alpha: [8, 13]
+            beta: [13, 30]
+            theta: [4, 8]
+            delta: [0.5, 4]
+      - id: output
+        module: timeflux.nodes.debug
+        class: Display
+        params:
+          encoding: utf-8
+    edges:
+      - source: sub:raw
+        target: bandpass
+      - source: bandpass:signal_filtered
+        target: window
+      - source: window:window
+        target: spectrum
+      - source: spectrum:psd
+        target: bands
+      - source: bands:bands
+        target: output
+    rate: 100

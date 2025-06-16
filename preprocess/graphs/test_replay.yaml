@@ -1,0 +1,99 @@
+import:
+  - replay.yaml
+
+graphs:
+  - id: broker
+    nodes:
+      - id: broker
+        module: timeflux.nodes.zmq
+        class: Broker
+  - id: main
+    nodes:
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ raw ]
+      - id: notch
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandstop
+          frequencies: [ 45, 55 ]
+          order: 1
+      - id: bandpass
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandpass
+          frequencies: [ 0.1, 30 ]
+          order: 3
+      - id: select  # no use
+        module: timeflux.nodes.query
+        class: LocQuery
+        params:
+          key: [ Fpz ]
+      - id: Bands
+        module: timeflux_dsp.nodes.spectral
+        class: Bands
+        params:
+          bands: {
+            "delta": [1, 4],
+            "theta": [4, 8],
+            "alpha": [8, 12],
+            "beta": [12, 30],
+            }
+      - id: filter_bank
+        module: timeflux_dsp.nodes.filters
+        class: FilterBank
+        params:
+          filters:
+            'delta': { frequencies: [ 1, 4 ], order: 3 }
+            'theta': { frequencies: [ 5, 7 ], order: 3 }
+            'alpha': { frequencies: [ 8, 12 ], order: 3 }
+            'beta': { frequencies: [ 13, 20 ], order: 3 }
+            'gamma': { frequencies: [ 25, 40 ], order: 3 }
+          design: butter
+      - id: band_powers
+        module: preprocess.nodes.power
+        class: Power
+        params:
+          length: 5
+          step: 3
+      - id: random
+        module: timeflux.nodes.random
+        class: Random
+        params:
+          columns: 5
+          rows_min: 1
+          rows_max: 10
+          value_min: 0
+          value_max: 5
+          seed: 1
+      - id: node_2
+        module: timeflux_example.nodes.arithmetic
+        class: Add
+        params:
+          value: 1
+      - id: display
+        module: timeflux.nodes.debug
+        class: Display
+      - id: ei
+        module: preprocess.nodes.ei
+        class: Engagement
+        params:
+          channels: [Fpz]
+
+    edges:
+      - source: sub:raw
+        target: notch
+      - source: notch
+        target: bandpass
+      - source: bandpass
+        target: filter_bank
+      - source: filter_bank
+        target: band_powers
+      - source: band_powers
+        target: ei
+      - source: ei
+        target: display

@@ -1,0 +1,38 @@
+import:
+  - graphs/broker.yaml
+#  - graphs/replay.yaml
+  - graphs/lsl.yaml
+  - graphs/filter.yaml
+  - graphs/bands.yaml
+
+graphs:
+  - id: main
+    nodes:
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ bands ]
+      - id: band_powers
+        module: preprocess.nodes.power
+        class: Power
+        params:
+          length: 12
+          step: 3
+      - id: display
+        module: timeflux.nodes.debug
+        class: Display
+      - id: ei
+        module: preprocess.nodes.ei
+        class: Engagement
+        params:
+          channels: [Fpz]
+
+    edges:
+      - source: sub:bands
+        target: band_powers
+      - source: band_powers
+        target: ei
+      - source: ei
+        target: display
+    rate: 256
