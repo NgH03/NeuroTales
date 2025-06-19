@@ -21,6 +21,8 @@ class Engagement(Node):
         self.channels: [str] = channels if len(channels) > 0 else None
         self.accuracy = min(max(accuracy, 0), 8)
         self.ei_value = None
+        self.ei_list = []
+        self.alpha_list = []
 
     def get_channel_val(self, ch) -> float:
         try:
@@ -36,6 +38,10 @@ class Engagement(Node):
             theta_val = self.get_channel_val(f'{channel}_theta')
             ei_value = round(beta_val / (alpha_val + theta_val), self.accuracy)
             self.logger.debug(f"通道 {channel} 当前专注度 {ei_value}")
+
+            self.alpha_list.append(str(round(alpha_val, 8)))
+            self.logger.debug(",".join(self.alpha_list))
+
             return ei_value
         except Exception as e:
             raise Exception(f"计算通道 {channel} 的EI值异常: {e}")
@@ -70,3 +76,5 @@ class Engagement(Node):
         data = {'ei': [self.ei_value]}
         df = pd.DataFrame(data)
         self.o.data = df
+        self.ei_list.append(str(self.ei_value))
+        self.logger.debug(",".join(self.ei_list))

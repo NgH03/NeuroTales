@@ -1,0 +1,22 @@
+server:
+  port: 8008
+
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: "http://langchain4j.dev/demo/openai/v1"
+      api-key: demo
+      model-name: gpt-4o-mini
+  #      log-requests: true
+  #      log-responses: true
+  ollama:
+    chat-model:
+      base-url: http://localhost:11434
+      model-name: deepseek-r1:1.5b
+      log-requests: true
+      log-responses: true
+      temperature: 0.8
+      timeout: PT60S
+logging:
+  level:
+    root: debug
