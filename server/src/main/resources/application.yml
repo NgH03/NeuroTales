@@ -1,6 +1,12 @@
 server:
   port: 8008
 
+spring:
+  data:
+    mongodb:
+      uri: "mongodb://192.168.200.100:17017/chat_memory_db"
+
+
 langchain4j:
   open-ai:
     chat-model:
