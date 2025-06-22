@@ -1,17 +1,16 @@
 package com.bcilab.neurotales.controller;
 
+import com.bcilab.neurotales.model.response.CommonResult;
+import com.bcilab.neurotales.model.dto.DatasetInfoDTO;
 import com.bcilab.neurotales.service.ChatService;
-import com.bcilab.neurotales.utils.ChatAssistant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "BCI聊天模型")
+@Tag(name = "聊天控制器")
 @RestController
-@RequestMapping("/ei")
+@RequestMapping("/chat")
 public class ChatController {
 
     @Autowired
@@ -19,8 +18,15 @@ public class ChatController {
 
     @Operation(summary = "测试返回HTML页面")
     @GetMapping("html")
-    public String getHtml(){
+    public CommonResult getHtml(){
         return chatService.emptyChat();
+    }
+
+    @Operation(summary = "ei专注力评估接口")
+    @PostMapping("ei")
+    public CommonResult chatEi(@RequestBody DatasetInfoDTO datasetInfo){
+        // 根据传入的ei值数组返回大模型回答
+        return chatService.chatEi(datasetInfo);
     }
 
 }

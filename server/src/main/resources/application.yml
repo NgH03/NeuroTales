@@ -4,8 +4,15 @@ server:
 spring:
   data:
     mongodb:
-      uri: "mongodb://192.168.200.100:17017/chat_memory_db"
+      uri: "mongodb://192.168.200.100:17017/neurotales_db"
 
+knife4j:
+  enable: true
+  setting:
+    language: zh-CN
+    enableSwaggerModels: true
+    enableDocumentManage: true
+  cors: true
 
 langchain4j:
   open-ai:
@@ -25,4 +32,4 @@ langchain4j:
       timeout: PT60S
 logging:
   level:
-    root: debug
+    root: info

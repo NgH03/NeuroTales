@@ -1,5 +1,4 @@
 package com.bcilab.neurotales.utils;
-// Description: TODO
 
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;

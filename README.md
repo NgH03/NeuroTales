@@ -87,8 +87,77 @@ timeflux {
     - **开发.hd5f数据上传模块：**上传后自动解析，解析失败则删除不占用服务器存储
 
 3. 功能升级
-   - 开发RAG知识库检索
+   - RAG知识库检索：后台知识库RAG，个人知识库
    - 升级模型 + 升级专注力检测算法 + 升级prompt
 
 
+
+
+
+#### MongoDB
+
+##### database - neurotales
+
+1. collection - users
+
+   ```json
+   /** 
+   * Paste one or more documents here
+   */
+   {
+     "_id": {
+       "$oid": "64a5f3b9c1b2d3e4f5g6h7i8"
+     },
+     "accountId": "账户名称",
+     "password": "",
+     "gender": "male",
+     "birthDate": "2003-11-03",
+     "sessionInfos": [
+       {
+         "sessionId": "65b6c7d8e9f0a1b2c3d4e5f6",
+         "sessionName": "会话名称"
+       }
+     ],
+     "eegInfos": [
+       {
+         "datasetId": "66c7d8e9f0a1b2c3d4e5f6a7",
+         "sessionName": "数据集名称",
+         "isProcessed": false
+          
+       }
+     ]
+   }
+   ```
+
+2. collection - datasets
+
+   ```json
+   // document example
+   {
+     "_id": {
+       "$oid": "6856336a7725fe96838509e7"
+     },
+     "eegFile": "MinIO的key",
+     "eiValues": [0.22, 0.23],
+     "alphaValues": [0.5, 0.2],
+     "pictureFile": "MinIO的key"
+   }
+   ```
+
+3. collection - sessions
+
+   ```json
+   // document example
+   {
+     "_id": {
+       "$oid": "6856336a7725fe96838509e7"
+     },
+     "memoryId": 1,
+     "content": "[{\"text\": \"你是一个专业的……\"}]"
+   }
+   ```
+
+
+
+### 接口文档
 

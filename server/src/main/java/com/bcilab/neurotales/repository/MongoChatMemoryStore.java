@@ -1,8 +1,7 @@
 package com.bcilab.neurotales.repository;
 // Description: 连接MongoDB实现聊天记忆存储
 
-import com.bcilab.neurotales.model.ChatMessages;
-import com.google.protobuf.Message;
+import com.bcilab.neurotales.model.po.Session;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
@@ -27,9 +26,9 @@ public class MongoChatMemoryStore implements ChatMemoryStore {
     public List<ChatMessage> getMessages(Object memoryId) {
         Criteria criteria = Criteria.where("memoryId").is(memoryId);
         Query query = new Query(criteria);
-        ChatMessages chatMessages = mongoTemplate.findOne(query, ChatMessages.class);
-        if (chatMessages == null) return new LinkedList<>();
-        return ChatMessageDeserializer.messagesFromJson(chatMessages.getContent());
+        Session session = mongoTemplate.findOne(query, Session.class);
+        if (session == null) return new LinkedList<>();
+        return ChatMessageDeserializer.messagesFromJson(session.getContent());
     }
 
     @Override
@@ -39,13 +38,13 @@ public class MongoChatMemoryStore implements ChatMemoryStore {
         Update update = new Update();
         update.set("content", ChatMessageSerializer.messagesToJson(messages));
         // 根据query条件能查询出文档，则修改文档，否则新增文档
-        mongoTemplate.upsert(query, update, ChatMessages.class);
+        mongoTemplate.upsert(query, update, Session.class);
     }
 
     @Override
     public void deleteMessages(Object memoryId) {
         Criteria criteria = Criteria.where("memoryId").is(memoryId);
         Query query = new Query(criteria);
-        mongoTemplate.remove(query, ChatMessages.class);
+        mongoTemplate.remove(query, Session.class);
     }
 }
