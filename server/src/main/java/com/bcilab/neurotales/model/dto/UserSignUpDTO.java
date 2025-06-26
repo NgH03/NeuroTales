@@ -23,7 +23,7 @@ public class UserSignUpDTO {
     @Length(min = 4, max = 15)
     @Pattern(regexp = "^[a-zA-Z0-9_\u4e00-\u9fa5]+$")
     @Schema(description = "账号名")
-    private String accountId;
+    private String username;
 
     @NotBlank
     @Length(min = 4, max = 15)

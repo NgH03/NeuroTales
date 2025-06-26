@@ -1,3 +1,4 @@
+import numpy
 import pandas as pd
 from statistics import mean
 from timeflux.core.node import Node
@@ -37,10 +38,10 @@ class Engagement(Node):
             alpha_val = self.get_channel_val(f'{channel}_alpha')
             theta_val = self.get_channel_val(f'{channel}_theta')
             ei_value = round(beta_val / (alpha_val + theta_val), self.accuracy)
-            self.logger.debug(f"通道 {channel} 当前专注度 {ei_value}")
+            self.logger.info(f"通道 {channel} 当前专注度 {ei_value}")
 
             self.alpha_list.append(str(round(alpha_val, 8)))
-            self.logger.debug(",".join(self.alpha_list))
+            self.logger.info(",".join(self.alpha_list))
 
             return ei_value
         except Exception as e:
@@ -73,8 +74,12 @@ class Engagement(Node):
 
         # 记录当前计算的数据到output
         self.cal_ei()
+
+        if numpy.isnan(self.ei_value):
+            return
+
         data = {'ei': [self.ei_value]}
         df = pd.DataFrame(data)
         self.o.data = df
         self.ei_list.append(str(self.ei_value))
-        self.logger.debug(",".join(self.ei_list))
+        self.logger.info(",".join(self.ei_list))

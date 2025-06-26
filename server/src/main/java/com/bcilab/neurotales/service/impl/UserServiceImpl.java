@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public CommonResult signIn(UserSignInDTO userSignInDTO) {
+    public CommonResult login(UserSignInDTO userSignInDTO) {
         //
         return null;
     }

@@ -5,6 +5,20 @@ spring:
   data:
     mongodb:
       uri: "mongodb://192.168.200.100:17017/neurotales_db"
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  threads:
+    virtual:
+      enabled: true
+  task:
+    execution:
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
+
 
 knife4j:
   enable: true
@@ -30,6 +44,9 @@ langchain4j:
       log-responses: true
       temperature: 0.8
       timeout: PT60S
+
+
 logging:
   level:
-    root: info
+    root: debug
+

@@ -33,9 +33,9 @@ public class UserController {
     }
 
     @Operation(summary = "用户登录")
-    @PostMapping("/signin")
-    public CommonResult signIn(@Valid @RequestBody UserSignInDTO userSignInDTO) {
-        return userService.signIn(userSignInDTO);
+    @PostMapping("/login")
+    public CommonResult logIn(@Valid @RequestBody UserSignInDTO userSignInDTO) {
+        return userService.login(userSignInDTO);
     }
 
     @Operation(summary = "更新用户信息")

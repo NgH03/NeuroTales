@@ -1,14 +1,21 @@
-import:
-  - replay.yaml
-
 graphs:
-  - id: broker
+  - id: replay
     nodes:
-      - id: broker
+      - id: replay
+        module: preprocess.nodes.hdf5
+        class: Replay
+        params:
+#          filename: preprocess/data/bitalino_eeg.hdf5
+          filename: __FILEPATH__
+          keys:
+            - /raw
+          speed: 100
+          resync: false
+      - id: pub_raw
         module: timeflux.nodes.zmq
-        class: Broker
-  - id: main
-    nodes:
+        class: Pub
+        params:
+          topic: raw
       - id: sub
         module: timeflux.nodes.zmq
         class: Sub
@@ -58,23 +65,8 @@ graphs:
         module: preprocess.nodes.power
         class: Power
         params:
-          length: 5
-          step: 3
-      - id: random
-        module: timeflux.nodes.random
-        class: Random
-        params:
-          columns: 5
-          rows_min: 1
-          rows_max: 10
-          value_min: 0
-          value_max: 5
-          seed: 1
-      - id: node_2
-        module: timeflux_example.nodes.arithmetic
-        class: Add
-        params:
-          value: 1
+          length: 10
+          step: 5
       - id: display
         module: timeflux.nodes.debug
         class: Display
@@ -83,9 +75,17 @@ graphs:
         class: Engagement
         params:
           channels: [Fpz]
+      - id: callback
+        module: preprocess.nodes.callback
+        class: Callback
+        params:
+          keys: [ei]
+          task_id: __TASKID__
 
     edges:
-      - source: sub:raw
+      - source: replay:raw
+        target: select
+      - source: select
         target: notch
       - source: notch
         target: bandpass
@@ -96,4 +96,5 @@ graphs:
       - source: band_powers
         target: ei
       - source: ei
-        target: display
+        target: callback
+    rate: 1000

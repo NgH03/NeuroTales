@@ -15,7 +15,7 @@ public class UserSignInDTO {
     @Length(min = 4, max = 15, message = "账号长度需在4至15之间")
     @Pattern(regexp = "^[a-zA-Z0-9_\u4e00-\u9fa5]+$", message = "账号名仅支持中、英文和下划线")
     @Schema(description = "账号名")
-    private String accountId;
+    private String username;
 
     @NotBlank
     @Length(min = 4, max = 15, message = "账号长度需在4至15之间")

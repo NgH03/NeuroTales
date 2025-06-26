@@ -1,6 +1,8 @@
-from timeflux.nodes.window import TimeWindow
+from timeflux.nodes.window import TimeWindow, SampleWindow
 import numpy as np
 import pandas as pd
+import timeflux.nodes.zmq
+from timeflux.nodes.hdf5 import Replay
 
 class Power(TimeWindow):
     """ Average of squared samples on a moving window

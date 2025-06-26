@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class UserInfoDTO{
 
     @Schema(description = "账号名")
-    private String accountId;
+    private String username;
 
     @Schema(description = "性别 - male(0), female(1)")
     private byte gender;

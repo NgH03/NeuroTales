@@ -5,25 +5,29 @@ import lombok.Data;
 
 @Data
 public class CommonResult {
-    private Integer code;   //200代表成功，400代表失败，403代表token失效，405代表无权限
+    private Integer code;   //200代表成功，202代表接受，400代表失败，403代表token失效，405代表无权限
     private String message; //提示信息
     private Object data;    //返回数据
 
     private static final Integer CODE_SUCCESS = 200;
 
+    private static final Integer CODE_ACCEPTED = 202;
+
     private static final Integer CODE_FAIL = 400;
 
-    private static final Integer CODE_EXPIRE=403;
+    private static final Integer CODE_EXPIRE = 403;
 
-    private static final Integer CODE_UNAUTHORIZED=405;
+    private static final Integer CODE_UNAUTHORIZED = 405;
 
     private static final String MSG_SUCCESS = "success";
+
+    private static final String MSG_ACCEPTED = "accepted";
 
     private static final String MSG_FAIL = "failed";
 
     private static final String MSG_EXPIRE = "token_expire";
 
-    private static final String MSG_UNAUTHORIZED="unauthorized";
+    private static final String MSG_UNAUTHORIZED = "unauthorized";
 
     public CommonResult(){
     }
@@ -60,6 +64,26 @@ public class CommonResult {
     }
 
     public static CommonResult success(Integer code,String msg,Object data){
+        return new CommonResult(code,msg,data);
+    }
+
+    public static CommonResult accepted(){
+        return new CommonResult(CODE_ACCEPTED,MSG_ACCEPTED);
+    }
+
+    public static CommonResult accepted(String msg){
+        return new CommonResult(CODE_ACCEPTED,msg);
+    }
+
+    public static CommonResult accepted(Object data){
+        return new CommonResult(CODE_ACCEPTED,MSG_SUCCESS,data);
+    }
+
+    public static CommonResult accepted(String msg,Object data){
+        return new CommonResult(CODE_ACCEPTED,msg,data);
+    }
+
+    public static CommonResult accepted(Integer code,String msg,Object data){
         return new CommonResult(code,msg,data);
     }
 

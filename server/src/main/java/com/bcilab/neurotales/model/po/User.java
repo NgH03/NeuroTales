@@ -18,7 +18,7 @@ import java.util.List;
 public class User extends BaseEntity {
     // 移除所有验证注解
     @Schema(description = "账号名")
-    private String accountId;
+    private String username;
 
     @Schema(description = "密码哈希")
     private String passwordHash; // 存储哈希值而非明文

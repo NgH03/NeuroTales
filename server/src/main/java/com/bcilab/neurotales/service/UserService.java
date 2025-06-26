@@ -10,7 +10,7 @@ public interface UserService {
 
     CommonResult signUp(UserSignUpDTO userSignUpDTO);
 
-    CommonResult signIn(UserSignInDTO userSignInDTO);
+    CommonResult login(UserSignInDTO userSignInDTO);
 
     CommonResult findByAccountId(String accountId);
 
