@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,10 +84,38 @@ public class DatasetServiceImpl implements DatasetService {
         // 6. 启动异步处理
         processDatasetAsync(targetPath, taskId);
 
-        return CommonResult.accepted("文件预处理中", Map.of(
-                "taskId", taskId,
-                "filename", filename
-        ));
+        final int MAX_RETRIES = 100; // 最大重试次数
+        final long DELAY_BETWEEN_RETRIES = 2000; // 每次重试间隔(毫秒)
+        int retries = 0;
+
+        while (true) {
+            String result = chatResult.get(taskId);
+            if (result != null) {
+                return CommonResult.success(result);
+            }
+
+            retries++;
+            if (retries >= MAX_RETRIES) {
+                // 达到最大重试次数后返回失败结果
+                return CommonResult.fail("获取聊天结果超时");
+            }
+
+            try {
+                // 等待指定时间后重试
+                TimeUnit.MILLISECONDS.sleep(DELAY_BETWEEN_RETRIES);
+            } catch (InterruptedException e) {
+                // 恢复中断状态并返回失败结果
+                Thread.currentThread().interrupt();
+                return CommonResult.fail("等待被中断");
+            }
+        }
+
+//        return CommonResult.success(chatResult.get(taskId));
+
+//        return CommonResult.accepted("文件预处理中", Map.of(
+//                "taskId", taskId,
+//                "filename", filename
+//        ));
     }
 
     @Override
@@ -124,6 +153,12 @@ public class DatasetServiceImpl implements DatasetService {
             handleFailure(requestTaskId, filePath);
             return CommonResult.fail("预处理失败");
         }
+    }
+
+    @Override
+    public CommonResult getResult(String taskId) {
+
+        return CommonResult.success(chatResult.get(taskId));
     }
 
     @Async("taskExecutor")
@@ -228,6 +263,8 @@ public class DatasetServiceImpl implements DatasetService {
         return true;
     }
 
+    Map<String, String> chatResult = new HashMap<>();
+
     @Async("taskExecutor")
     protected void handleSuccess(CallbackRequest callbackRequest, Path filePath) {
         try {
@@ -235,6 +272,7 @@ public class DatasetServiceImpl implements DatasetService {
 
             log.info("开始AI分析: taskId={}, file={}", callbackRequest.getTaskId(), filePath.getFileName());
             CommonResult commonResult = chatService.chatEi(callbackRequest);
+            chatResult.put(callbackRequest.getTaskId(), commonResult.getMessage());
             log.info(commonResult.getMessage());
         } catch (Exception e) {
             log.error("保存预处理结果失败", e);

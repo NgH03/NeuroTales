@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDF5数据集分析工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .dashboard {
+            display: flex;
+            gap: 25px;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            padding: 20px;
+            width: 35%;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .upload-section:hover {
+            transform: translateY(-3px);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section-header i {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #3498db;
+        }
+        
+        .upload-container {
+            border: 3px dashed #3498db;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 15px;
+            flex: none;
+        }
+        
+        .upload-container:hover, .upload-container.dragover {
+            background: #e3f2fd;
+            border-color: #2980b9;
+        }
+        
+        .upload-icon {
+            font-size: 36px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text h3 {
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .upload-text p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .browse-btn {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .browse-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .file-info {
+            background: #e8f4fc;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            display: none;
+            font-size: 0.9rem;
+            flex: none;
+        }
+        
+        .file-info.active {
+            display: block;
+        }
+        
+        .file-info p {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+        }
+        
+        .progress-container {
+            margin: 15px 0;
+            flex: none;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 15px;
+            flex: none;
+        }
+        
+        .upload-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .upload-btn:hover {
+            background: #27ae60;
+            transform: scale(1.05);
+        }
+        
+        .upload-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+            flex: none;
+        }
+        
+        .response-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .markdown-container {
+            background: #f8f9fa;
+            padding: 25px;
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #eee;
+        }
+        
+        .markdown-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        
+        .markdown-content h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .markdown-content h2 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1.2em;
+            line-height: 1.6;
+            color: #34495e;
+        }
+        
+        .markdown-content pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+        
+        .markdown-content code {
+            font-family: 'Courier New', monospace;
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #d14;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .markdown-content th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .markdown-content tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            margin: 1.5em 0;
+            color: #555;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .upload-section, .result-section {
+                width: 100%;
+            }
+            
+            .result-section {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HDF5数据集分析工具</h1>
+            <p>上传HDF5格式数据集文件，获取详细的Markdown格式分析报告</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="upload-section">
+                <div class="section-header">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h2>数据集上传</h2>
+                </div>
+                
+                <div class="upload-container" id="dropZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <div class="upload-text">
+                        <h3>拖放HDF5文件到此处</h3>
+                        <p>或点击下方按钮选择文件</p>
+                        <div class="browse-btn" id="browseBtn">选择文件</div>
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" accept=".h5,.hdf5">
+                
+                <div class="file-info" id="fileInfo">
+                    <p><span>文件名:</span> <span id="fileName"></span></p>
+                    <p><span>文件大小:</span> <span id="fileSize"></span></p>
+                    <p><span>文件类型:</span> <span id="fileType"></span></p>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="progressBar"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>上传进度</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="upload-btn" id="uploadBtn" disabled>
+                        <i class="fas fa-upload"></i> 上传数据集
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-header">
+                    <h2>分析结果</h2>
+                    <div class="response-status status-pending" id="responseStatus">等待上传</div>
+                </div>
+                <div class="markdown-container">
+                    <div class="markdown-content" id="markdownContent">
+                        <div style="text-align: center; padding: 50px 20px; color: #7f8c8d;">
+                            <i class="fas fa-file-alt" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <h3>分析结果将显示在此区域</h3>
+                            <p>请上传HDF5数据集文件以获取分析报告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 未来技术学院BCI项目组 | 上传脑电数据，获取AI专注力专注力分析报告。</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM元素
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const markdownContent = document.getElementById('markdownContent');
+        const responseStatus = document.getElementById('responseStatus');
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        
+        let selectedFile = null;
+        
+        // 点击浏览按钮触发文件选择
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // 文件选择处理
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        // 拖放功能
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+        
+        // 处理选择的文件
+        function handleFileSelect() {
+            if (fileInput.files.length > 0) {
+                selectedFile = fileInput.files[0];
+                
+                // 更新文件信息显示
+                fileName.textContent = selectedFile.name;
+                fileSize.textContent = formatFileSize(selectedFile.size);
+                fileType.textContent = selectedFile.type || 'HDF5文件';
+                fileInfo.classList.add('active');
+                
+                // 启用上传按钮
+                uploadBtn.disabled = false;
+                
+                // 重置进度和结果
+                resetProgress();
+                responseStatus.textContent = '待上传';
+                responseStatus.className = 'response-status status-pending';
+            }
+        }
+        
+        // 上传按钮事件
+        uploadBtn.addEventListener('click', uploadFile);
+        
+        // 文件上传函数
+        function uploadFile() {
+            if (!selectedFile) return;
+            
+            // 禁用上传按钮
+            uploadBtn.disabled = true;
+            
+            // 更新状态
+            responseStatus.textContent = '处理中...';
+            responseStatus.className = 'response-status status-pending';
+            
+            // 清空之前的Markdown内容
+            markdownContent.innerHTML = '<div style="text-align:center;padding:30px;"><div class="spinner" style="display:block;margin:0 auto 20px;"></div><p>处理中，请稍候...</p></div>';
+            
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            // 创建XMLHttpRequest对象
+            const xhr = new XMLHttpRequest();
+            
+            // 上传进度事件
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = `${percent}%`;
+                    progressText.textContent = `${percent}%`;
+                }
+            });
+            
+            // 请求完成事件
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.code === 200) {
+                            // 成功响应
+                            responseStatus.textContent = '处理成功';
+                            responseStatus.className = 'response-status status-success';
+                            
+                            // 渲染Markdown内容
+                            if (response.message) {
+                                markdownContent.innerHTML = marked.parse(response.message);
+                            } else {
+                                markdownContent.innerHTML = '<div class="no-result" style="text-align:center;padding:30px;"><i class="fas fa-check-circle" style="font-size:48px;color:#2ecc71;margin-bottom:20px;"></i><p>处理完成，无返回信息</p></div>';
+                            }
+                        } else {
+                            // 处理错误
+                            responseStatus.textContent = `错误: ${response.code}`;
+                            responseStatus.className = 'response-status status-error';
+                            markdownContent.innerHTML = '<div class="error-result" style="text-align:center;padding:30px;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#e74c3c;margin-bottom:20px;"></i><p>' + (response.message || '处理过程中发生错误') + '</p></div>';
+                        }
+                    } catch (e) {
+                        // JSON解析错误
+                        responseStatus.textContent = '响应解析错误';
+                        responseStatus.className = 'response-status status-error';
+                        markdownContent.innerHTML = '<div class="error-result" style="text-align:center;padding:30px;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#e74c3c;margin-bottom:20px;"></i><p>服务器返回的数据格式不正确</p></div>';
+                    }
+                } else {
+                    // HTTP错误
+                    responseStatus.textContent = `错误: ${xhr.status}`;
+                    responseStatus.className = 'response-status status-error';
+                    markdownContent.innerHTML = '<div class="error-result" style="text-align:center;padding:30px;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#e74c3c;margin-bottom:20px;"></i><p>服务器返回了错误状态: ' + xhr.status + '</p></div>';
+                }
+            });
+            
+            // 请求错误事件
+            xhr.addEventListener('error', () => {
+                uploadBtn.disabled = false;
+                
+                responseStatus.textContent = '请求失败';
+                responseStatus.className = 'response-status status-error';
+                markdownContent.innerHTML = '<div class="error-result" style="text-align:center;padding:30px;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#e74c3c;margin-bottom:20px;"></i><p>无法连接到服务器，请稍后重试</p></div>';
+            });
+            
+            // 超时事件
+            xhr.timeout = 120000; // 120秒超时
+            xhr.ontimeout = () => {
+                uploadBtn.disabled = false;
+                
+                responseStatus.textContent = '请求超时';
+                responseStatus.className = 'response-status status-error';
+                markdownContent.innerHTML = '<div class="error-result" style="text-align:center;padding:30px;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#e74c3c;margin-bottom:20px;"></i><p>服务器处理超时，请稍后重试</p></div>';
+            };
+            
+            // 打开并发送请求
+            xhr.open('POST', 'http://localhost:8008/dataset/upload');
+            xhr.send(formData);
+        }
+        
+        // 重置进度显示
+        function resetProgress() {
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
