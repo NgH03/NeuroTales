@@ -1,9 +1,7 @@
 package com.bcilab.neurotales;
 // Description: TODO
 
-import com.bcilab.neurotales.controller.UserController;
 import com.bcilab.neurotales.model.dto.UserSignUpDTO;
-import com.bcilab.neurotales.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

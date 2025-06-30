@@ -38,12 +38,17 @@ public class DatasetController {
             @RequestPart("file") MultipartFile file){
         return datasetService.uploadDataset(file);
     }
+    @GetMapping(value = "get")
+    public CommonResult getResultBytASKid( String taskId){
+        return datasetService.getResult(taskId);
+    }
 
     @Operation(summary = "确认任务完成并传输结果回调接口")
     @PostMapping(value = "/callback")
     public CommonResult doneDataset(@RequestBody CallbackRequest callbackRequest){
         return datasetService.saveDataset(callbackRequest);
     }
+
 
 //    @Operation(summary = "实时录制EEG数据")
 

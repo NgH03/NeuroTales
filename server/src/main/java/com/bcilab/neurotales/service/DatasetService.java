@@ -13,5 +13,7 @@ public interface DatasetService {
 
     CommonResult saveDataset(CallbackRequest callbackRequest);
 
+    CommonResult getResult(String taskId);
+
 //    CommonResult processDataset(String datasetPath);
 }
