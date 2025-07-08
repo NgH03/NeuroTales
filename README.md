@@ -2,6 +2,7 @@
 NeuroTales是一套轻量级的，用于实时评估大脑状态的系统。
 > 基于Timeflux框架开发
 
+![image-20250706160007132](docs\assets\image-20250706160007132.png)
 ### prompt
 
 ```
@@ -78,7 +79,7 @@ timeflux {
    
     - **开发用户管理模块：**用户从前端交互，输入用户名登录（没有账号就创建一个，有的话就登录查到所有的数据集）
     
-      > AOP实现HTTP Header解析器校验登陆账号，30min退出登录，信息使用原生ThreadLocal存储
+      > AOP实现HTTP Header解析器校验登陆账号，30min退出登录，信息使用原生ThreadLocal存储(待实现)
     
     - **开发离线信号处理：**EEG录制和解析分离，录制可实时生成EI和alpha，解析接受.hdf5格式，参考lsl->hd5f的保存方式
     
