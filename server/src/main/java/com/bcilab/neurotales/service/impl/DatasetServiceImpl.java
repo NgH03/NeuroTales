@@ -129,13 +129,14 @@ public class DatasetServiceImpl implements DatasetService {
         String requestTaskId = callbackRequest.getTaskId();
         log.info("返回来的的taskId: "+requestTaskId);
         // 2. 获取文件路径
-        Path filePath = taskIdToFilePathMap.get(requestTaskId);
+//        Path filePath = taskIdToFilePathMap.get(requestTaskId);
 
+        String filePath = "OpenBCI";
         // 3. 检查任务ID一致性
-        if (filePath == null) {
-            log.warn("找不到与任务ID关联的文件: {}", requestTaskId);
-            return CommonResult.fail("无效的任务ID");
-        }
+//        if (filePath == null) {
+//            log.warn("找不到与任务ID关联的文件: {}", requestTaskId);
+//            return CommonResult.fail("无效的任务ID");
+//        }
 
         // 4. 延迟处理（模拟等待）
         try {
@@ -147,10 +148,9 @@ public class DatasetServiceImpl implements DatasetService {
 
         // 5. 根据处理结果处理文件
         if (callbackRequest.getIsSuccess()) {
-            handleSuccess(callbackRequest, filePath);
-            return CommonResult.success("预处理结果保存成功");
+            return handleSuccess(callbackRequest, filePath);
         } else {
-            handleFailure(requestTaskId, filePath);
+//            handleFailure(requestTaskId, filePath);
             return CommonResult.fail("预处理失败");
         }
     }
@@ -266,20 +266,19 @@ public class DatasetServiceImpl implements DatasetService {
     Map<String, String> chatResult = new HashMap<>();
 
     @Async("taskExecutor")
-    protected void handleSuccess(CallbackRequest callbackRequest, Path filePath) {
+    protected CommonResult handleSuccess(CallbackRequest callbackRequest, String filePath) {
         try {
             // TODO: 保存处理结果到数据库
 
-            log.info("开始AI分析: taskId={}, file={}", callbackRequest.getTaskId(), filePath.getFileName());
+            log.info("开始AI分析: taskId={}, file={}", callbackRequest.getTaskId(), filePath);
             CommonResult commonResult = chatService.chatEi(callbackRequest);
             chatResult.put(callbackRequest.getTaskId(), commonResult.getMessage());
             log.info(commonResult.getMessage());
+            return commonResult;
         } catch (Exception e) {
             log.error("保存预处理结果失败", e);
-        } finally {
-            // 清理任务ID映射
-            taskIdToFilePathMap.remove(callbackRequest.getTaskId());
         }
+        return CommonResult.fail();
     }
 
     private CommonResult handleFailure(String taskId, Path filePath) {

@@ -28,4 +28,9 @@ public class ChatTest {
 //        String html = markdownParser.parse(conetnt);
 //        save(html);
     }
+
+    @Test
+    void testPaperTest() {
+        System.out.println(chatAssistant.testChat("《LARGE BRAIN MODEL FOR LEARNING GENERIC REP RESENTATIONS WITH TREMENDOUS EEG DATA IN BCI》这篇论文的作者都是谁"));
+    }
 }

@@ -6,6 +6,7 @@ import com.bcilab.neurotales.model.dto.request.CallbackRequest;
 import com.bcilab.neurotales.model.po.Dataset;
 import com.bcilab.neurotales.model.response.CommonResult;
 import com.bcilab.neurotales.service.DatasetService;
+import com.bcilab.neurotales.utils.Constants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +37,8 @@ public class DatasetController {
     public CommonResult uploadDataset(
             @Parameter(description = "HDF5格式数据集文件")
             @RequestPart("file") MultipartFile file){
-        return datasetService.uploadDataset(file);
+//        return datasetService.uploadDataset(file);
+        return CommonResult.success(Constants.md);
     }
     @GetMapping(value = "get")
     public CommonResult getResultBytASKid( String taskId){
@@ -46,7 +48,8 @@ public class DatasetController {
     @Operation(summary = "确认任务完成并传输结果回调接口")
     @PostMapping(value = "/callback")
     public CommonResult doneDataset(@RequestBody CallbackRequest callbackRequest){
-        return datasetService.saveDataset(callbackRequest);
+//        return datasetService.saveDataset(callbackRequest);
+        return CommonResult.success(Constants.HTML);
     }
 
 

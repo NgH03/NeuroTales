@@ -18,6 +18,7 @@ class Display(Node):
         if self.i.ready() and self._data:
             # for i in self.i.data:
             #     self.logger.debug(f" {i} ")
+            self.logger.debug("\n %s" % self.i.data.columns)
             self.logger.debug("\n %s" % self.i.data)
         if self.i.meta and self._meta:
             self.logger.debug("\n %s" % self.i.meta)

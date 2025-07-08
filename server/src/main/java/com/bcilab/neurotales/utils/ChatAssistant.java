@@ -15,16 +15,21 @@ import static dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT;
 @Component
 @AiService(
     wiringMode = EXPLICIT,
-    chatModel = "ollamaChatModel"
+//    chatModel = "ollamaChatModel",
+    chatModel = "qwenChatModel",
+    contentRetriever = "contentRetriever"
 //    chatModel = "openAiChatModel"
 //    chatMemoryProvider = "chatMemoryProvider"
 )
 public interface ChatAssistant {
     @SystemMessage(value = Constants.SYSTEM_MESSAGES_EI)
-    @UserMessage(fromResource = "ei-prompt-template.txt")
+    @UserMessage(fromResource = "prompt/ei-prompt-template.txt")
     String sendMessage(@V("ei_values") String eiValues);
 
     @SystemMessage(value = Constants.SYSTEM_MESSAGES_EI)
-    @UserMessage(fromResource = "ei-prompt-template.txt")
+    @UserMessage(fromResource = "prompt/ei-prompt-template.txt")
     String chatEi(@V("ei_values") List<Double> eiValues);
+
+
+    String testChat(@UserMessage String s);
 }

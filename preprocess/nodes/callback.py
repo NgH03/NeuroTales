@@ -4,12 +4,14 @@ from statistics import mean
 from timeflux.core.node import Node
 from datetime import datetime
 import logging
+import os
 
 
 class Callback(Node):
     DEFAULT_URL = "http://localhost:8008/dataset/callback"
     MIN_ACCURACY = 0
     MAX_ACCURACY = 8
+    OUTPUT_FILENAME = "callback.md"  # 输出文件名
 
     """
     收集接收到的对应keys的数据，在结束运行时发送HTTP请求到后端
@@ -57,16 +59,39 @@ class Callback(Node):
         except Exception as e:
             self.logger.error(f"Unexpected error in terminate: {str(e)}")
 
-
     def _send_callback(self):
         """发送成功回调"""
         self.payload["isSuccess"] = self.has_data
         self.logger.info(self.payload)
         response = requests.post(self.url, json=self.payload, timeout=5)
+
         if response.status_code != 200:
             self.logger.error(
                 f"Callback failed with status {response.status_code}: "
                 f"{response.text}"
             )
-        else:
+            return
+
+        try:
+            response_data = response.json()
+            markdown_content = response_data.get("message", "")
+
+            if not markdown_content:
+                self.logger.warning("Empty markdown content in response")
+                return
+
+            root_dir = os.getcwd()
+            file_path = os.path.join(root_dir, self.OUTPUT_FILENAME)
+
+            with open(file_path, "w", encoding="utf-8") as md_file:
+                md_file.write(markdown_content)
+
+            self.logger.info(f"Successfully saved markdown to: {file_path}")
             self.logger.info(f"Sent successful callback: {self.payload}")
+
+        except KeyError:
+            self.logger.error("Response missing 'message' field")
+        except OSError as e:
+            self.logger.error(f"File write error: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Error processing response: {str(e)}")

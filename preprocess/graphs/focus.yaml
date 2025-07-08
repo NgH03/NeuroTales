@@ -1,0 +1,22 @@
+graphs:
+  - id: replay
+    nodes:
+      - id: acquire
+        module: timeflux.nodes.lsl
+        class: Receive
+        params:
+          prop: type
+          value: Focus
+      - id: columns
+        module: preprocess.nodes.columns
+        class: Columns
+        params:
+          columns: ["focus"]
+      - id: plot
+        module: preprocess.nodes.plot
+        class: Plot
+    edges:
+      - source: acquire
+        target: columns
+      - source: columns
+        target: plot

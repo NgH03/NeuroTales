@@ -4,6 +4,7 @@ from statistics import mean
 from timeflux.core.node import Node
 from datetime import datetime
 
+
 class Engagement(Node):
     """
     计算专注力 Engagement Index(EI)
@@ -19,7 +20,7 @@ class Engagement(Node):
 
     def __init__(self, channels: [str] = None, accuracy: int = 3):
         super().__init__()
-        self.channels: [str] = channels if len(channels) > 0 else None
+        self.channels: [str] = channels if channels and len(channels) > 0 else None
         self.accuracy = min(max(accuracy, 0), 8)
         self.ei_value = None
         self.ei_list = []
@@ -30,7 +31,6 @@ class Engagement(Node):
             return self.i.data[ch].iloc[0]
         except Exception as e:
             raise Exception(f"{ch} 的数据不存在: {e}")
-
 
     def cal_channel_ei(self, channel):
         try:
@@ -60,26 +60,33 @@ class Engagement(Node):
                 }
                 self.logger.error(str(e))
         self.ei_value = mean(ei_value_list) if len(ei_value_list) > 0 else None
+        return self.ei_value
 
     def update(self):
-
         # 检查input数据和channel数据
         if (self.i.data is None or
                 self.channels is None or
-                not isinstance(self.i.data, pd.core.frame.DataFrame)):
+                not isinstance(self.i.data, pd.DataFrame) or
+                self.i.data.empty):
             return
 
-        # 格式化output
-        self.o = self.i
+        # 保存当前时间戳（使用输入数据的最后一个时间戳）
+        current_timestamp = self.i.data.index[-1]
 
-        # 记录当前计算的数据到output
-        self.cal_ei()
+        # 计算EI值
+        ei_value = self.cal_ei()
 
-        if numpy.isnan(self.ei_value):
+        if ei_value is None or numpy.isnan(ei_value):
             return
 
-        data = {'ei': [self.ei_value]}
-        df = pd.DataFrame(data)
+        # 创建带时间戳的DataFrame
+        data = {'ei': [ei_value]}
+        df = pd.DataFrame(data, index=[current_timestamp])
+
+        # 设置输出
         self.o.data = df
-        self.ei_list.append(str(self.ei_value))
+        self.o.meta = self.i.meta
+
+        # 记录日志
+        self.ei_list.append(str(ei_value))
         self.logger.info(",".join(self.ei_list))

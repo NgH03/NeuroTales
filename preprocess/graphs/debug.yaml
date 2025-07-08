@@ -1,0 +1,20 @@
+graphs:
+  - id: replay
+    nodes:
+      - id: acquire
+        module: timeflux.nodes.lsl
+        class: Receive
+        params:
+          prop: type
+          value: EEG
+      - id: columns
+        module: preprocess.nodes.columns
+        class: Columns
+      - id: display
+        module: preprocess.nodes.debug
+        class: Display
+    edges:
+      - source: acquire
+        target: columns
+      - source: columns
+        target: display

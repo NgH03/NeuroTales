@@ -2,9 +2,9 @@ server:
   port: 8008
 
 spring:
-  data:
-    mongodb:
-      uri: "mongodb://192.168.200.100:17017/neurotales_db"
+#  data:
+#    mongodb:
+#      uri: "mongodb://192.168.200.100:17017/neurotales_db"
   servlet:
     multipart:
       max-file-size: 20MB
@@ -44,6 +44,15 @@ langchain4j:
       log-responses: true
       temperature: 0.8
       timeout: PT60S
+
+  community:
+    dashscope:
+      chat-model:
+        api-key: "sk-272227be632f47c2bc95bc0d0ac14188"
+        model-name: qwen-max
+
+
+
 
 
 logging:

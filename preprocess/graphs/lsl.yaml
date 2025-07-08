@@ -1,0 +1,125 @@
+graphs:
+  - id: replay
+    nodes:
+      - id: acquire
+        module: timeflux.nodes.lsl
+        class: Receive
+        params:
+          prop: type
+          value: EEG
+      - id: focus
+        module: timeflux.nodes.lsl
+        class: Receive
+        params:
+          prop: type
+          value: Focus
+      - id: columns_focus
+        module: preprocess.nodes.columns
+        class: Columns
+        params:
+          columns: [ 'focus' ]
+      - id: columns_ei
+        module: preprocess.nodes.columns
+        class: Columns
+        params:
+          columns: ['0', '1', '2', '3', '4', '5', '6', '7']
+      - id: pub_raw
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: raw
+      - id: sub
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ raw ]
+      - id: notch
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandstop
+          frequencies: [ 45, 55 ]
+          order: 1
+      - id: bandpass
+        module: timeflux_dsp.nodes.filters
+        class: IIRFilter
+        params:
+          filter_type: bandpass
+          frequencies: [ 0.1, 30 ]
+          order: 3
+      - id: select  # no use
+        module: timeflux.nodes.query
+        class: LocQuery
+        params:
+          key: [ Fpz ]
+      - id: Bands
+        module: timeflux_dsp.nodes.spectral
+        class: Bands
+        params:
+          bands: {
+            "delta": [1, 4],
+            "theta": [4, 8],
+            "alpha": [8, 12],
+            "beta": [12, 30],
+            }
+      - id: filter_bank
+        module: timeflux_dsp.nodes.filters
+        class: FilterBank
+        params:
+          filters:
+            'delta': { frequencies: [ 1, 4 ], order: 3 }
+            'theta': { frequencies: [ 5, 7 ], order: 3 }
+            'alpha': { frequencies: [ 8, 12 ], order: 3 }
+            'beta': { frequencies: [ 13, 20 ], order: 3 }
+            'gamma': { frequencies: [ 25, 40 ], order: 3 }
+          design: butter
+      - id: band_powers
+        module: preprocess.nodes.power
+        class: Power
+        params:
+          length: 5
+          step: 0.5
+      - id: display
+        module: preprocess.nodes.debug
+        class: Display
+      - id: ei
+        module: preprocess.nodes.ei
+        class: Engagement
+        params:
+          channels: ['0', '1', '2', '3', '4', '5', '6', '7']
+      - id: callback
+        module: preprocess.nodes.callback
+        class: Callback
+        params:
+          keys: [ei]
+          task_id: "task"
+      - id: plot_ei
+        module: preprocess.nodes.plot
+        class: Plot
+      - id: plot_focus
+        module: preprocess.nodes.plot
+        class: Plot
+
+    edges:
+#      - source: focus
+#        target: columns_focus
+      - source: acquire
+        target: columns_ei
+      - source: columns_ei
+        target: notch
+      - source: notch
+        target: bandpass
+      - source: bandpass
+        target: filter_bank
+      - source: filter_bank
+        target: band_powers
+      - source: band_powers
+#        target: display
+        target: ei
+      - source: ei
+        target: callback
+      - source: ei
+        target: plot_ei
+#      - source: columns_focus
+#        target: plot_focus
+#    rate: 250
